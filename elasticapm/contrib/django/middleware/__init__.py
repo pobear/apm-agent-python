@@ -33,6 +33,7 @@ from __future__ import absolute_import
 
 import logging
 import threading
+import re
 
 from django.apps import apps
 from django.conf import settings as django_settings
@@ -167,8 +168,11 @@ class TracingMiddleware(MiddlewareMixin, ElasticAPMClientMiddlewareMixin):
         try:
             if hasattr(response, "status_code"):
                 transaction_name = None
-                if self.client.config.django_transaction_name_from_route and hasattr(request.resolver_match, "route"):
-                    transaction_name = request.resolver_match.route
+                if self.client.config.django_transaction_name_from_route:
+                    if hasattr(request.resolver_match, "route"):
+                        transaction_name = request.resolver_match.route
+                    else:
+                        transaction_name = re.sub(r"/\d+/?", "/<id>/", request.path)
                 elif getattr(request, "_elasticapm_view_func", False):
                     transaction_name = get_name_from_func(request._elasticapm_view_func)
                 if transaction_name:
