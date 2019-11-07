@@ -172,7 +172,7 @@ class TracingMiddleware(MiddlewareMixin, ElasticAPMClientMiddlewareMixin):
                     if hasattr(request.resolver_match, "route"):
                         transaction_name = request.resolver_match.route
                     else:
-                        transaction_name = re.sub(r"/\d+/?", "/<id>/", request.path)
+                        transaction_name = re.sub(r"/([a-zA-Z_-]*)\d+/?", r"/\1<id>/", request.path)
                 elif getattr(request, "_elasticapm_view_func", False):
                     transaction_name = get_name_from_func(request._elasticapm_view_func)
                 if transaction_name:
